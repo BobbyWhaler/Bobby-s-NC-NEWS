@@ -1,7 +1,8 @@
-const { selectTopics, selectArticles, selectArticleByID, selectCommentsByArticleID, insertComments, updateArticleByID, selectUsers } = require('../models/nc-news');
+const { selectTopics, selectArticles, selectArticleByID, selectCommentsByArticleID, insertComments, updateArticleByID, selectUsers, removeCommentByID } = require('../models/nc-news');
+const endPointJSON = require("../endpoints.json")
 
 exports.getApi = (request, response) => {
-    response.status(200).send( {message: "all ok"} );
+    response.status(200).send(endPointJSON);
 };
 exports.getTopics = (request, response) => {
     selectTopics()
@@ -50,4 +51,12 @@ exports.getUsers = (request, response) => {
     .then((users) => {
         response.status(200).send( {users} );
     });
+}
+exports.deleteCommentByID = (request, response, next) => {
+    const { comment_id } = request.params
+    removeCommentByID(comment_id)
+    .then((comment) => {
+        response.status(204).send()
+    })
+    .catch(next)
 }

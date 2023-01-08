@@ -8,6 +8,7 @@ const {
   postComment,
   patchArticleByID,
   getUsers,
+  deleteCommentByID,
 } = require("./controllers/nc-news");
 const app = express();
 app.use(express.json());
@@ -23,6 +24,7 @@ app.get("/api/articles/:article_id/comments", getCommentsByID);
 
 app.post("/api/articles/:article_id/comments", postComment);
 app.patch("/api/articles/:article_id", patchArticleByID);
+app.delete("/api/comments/:comment_id", deleteCommentByID);
 
 app.all("/*", (req, res) => {
   res.status(404).send({ message: "Not Found" });

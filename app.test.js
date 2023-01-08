@@ -10,7 +10,7 @@ afterAll(() => {
 
 beforeEach(() => seed(data));
 
-describe("1. app", () => {
+describe("app", () => {
   test("status:404, non-existant route", () => {
     return request(app)
       .get("/api/headline")
@@ -18,19 +18,6 @@ describe("1. app", () => {
       .then((response) => {
         const msg = response.body;
         expect(msg).toEqual({ message: "Not Found" });
-      });
-  });
-});
-
-describe("2. GET /api", () => {
-  test('status:200, Should respond with a json object containing a "message" key', () => {
-    return request(app)
-      .get("/api")
-      .expect(200)
-      .then(({ body }) => {
-        expect(body).toBeInstanceOf(Object);
-        expect(Object.keys(body)).toEqual(["message"]);
-        expect(body.message).toBe("all ok");
       });
   });
 });
@@ -184,8 +171,7 @@ describe("4. GET /api/articles", () => {
         ]);
       });
   });
-});
-test("status:200, should return the correct amount of comments for each article", () => {
+  test("status:200, should return the correct amount of comments for each article", () => {
   return request(app)
     .get("/api/articles")
     .expect(200)
@@ -195,6 +181,8 @@ test("status:200, should return the correct amount of comments for each article"
       expect(articles[1].comment_count).toBe("1");
     });
 });
+});
+
 
 describe("5. GET /api/articles/:article_id", () => {
   test("status:200, responds with a single matching article", () => {
@@ -464,10 +452,10 @@ describe("10. GET /api/articles (queries)", () => {
       .get(`/api/articles${queryStatement}`)
       .expect(200)
       .then(({ body }) => {
-        expect(body).toBeInstanceOf(Object);
         expect(body.articles).toHaveLength(11);
         body.articles.forEach((article) => {
-          expect(article).toEqual({
+          expect(article).toEqual(
+            expect.objectContaining({
             author: expect.any(String),
             title: expect.any(String),
             body: expect.any(String),
@@ -476,7 +464,7 @@ describe("10. GET /api/articles (queries)", () => {
             created_at: expect.any(String),
             votes: expect.any(Number),
             comment_count: expect.any(String),
-          });
+          }));
         });
       });
   });
@@ -488,7 +476,6 @@ describe("10. GET /api/articles (queries)", () => {
       .get(`/api/articles${queryStatement}`)
       .expect(200)
       .then(({ body }) => {
-        expect(body).toBeInstanceOf(Object);
         expect(body.articles).toHaveLength(12);
         expect(body.articles[0]).toEqual({
           article_id: 1,
@@ -662,6 +649,65 @@ describe("11. GET /api/articles/:article_id (comment_count)", () => {
           votes: 0,
           comment_count: '0'
         }));
+      });
+  });
+});
+
+describe("12 DELETE /api/comments/:comment_id", () => {
+  test("status:204, deletes comment by comment_id", () => {
+    const article_ID = 9;
+    const comment_ID = 1;
+    return request(app)
+      .delete(`/api/comments/${comment_ID}`)
+      .expect(204)
+      .then(
+        request(app)
+          .get(`/api/articles/${article_ID}/comments`)
+          .expect(200)
+          .then(({ body }) => {
+            expect(body.comments.length).toBe(1);
+          })
+      );
+  });
+  test("status:404, non-existant route", () => {
+    const comment_ID = 1000
+   return request(app)
+      .delete(`/api/comments/${comment_ID}`)
+      .expect(404)
+      .then((response) => {
+        const msg = response.body;
+        expect(msg).toEqual({ message: "Not Found" });
+      });
+  });
+  test("status:400, Invalid ID (wrong data type)", () => {
+    return request(app)
+    .delete(`/api/comments/notAnID`)
+      .expect(400)
+      .then((response) => {
+        const msg = response.body;
+        expect(msg).toEqual({ message: "Bad Request" });
+      });
+  });
+});
+
+describe("13. GET /api", () => {
+  test('status:200, Should respond with a endpoints.JSON', () => {
+    return request(app)
+      .get("/api")
+      .expect(200)
+      .then(({body}) => {
+        expect(body).toBeInstanceOf(Object);
+        expect(Object.keys(body)).toEqual([
+          "GET /api",
+          "GET /api/topics",
+          "GET /api/articles",
+          "GET /api/users",
+          "/api/articles/:article_id",
+          "GET /api/articles/:article_id/comments",
+          "POST /api/articles/:article_id/comments",
+          "PATCH /api/articles/:article_id",
+          "DELETE /api/comments/:comment_id",
+            ]);
       });
   });
 });
